@@ -14,12 +14,22 @@
   --radius: 18px;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
   font-family: 'Inter', sans-serif;
   background: linear-gradient(180deg, #eef4ff 0%, #f7f9fc 100%);
   color: var(--text);
@@ -32,7 +42,9 @@ select {
 }
 
 .app-header {
+  width: 100%;
   max-width: 1200px;
+  min-width: 0;
   margin: 0 auto;
   padding: 28px 18px 16px;
   display: flex;
@@ -64,7 +76,9 @@ h1 {
 }
 
 .layout {
+  width: 100%;
   max-width: 1200px;
+  min-width: 0;
   margin: 0 auto;
   padding: 0 18px 32px;
   display: grid;
@@ -72,6 +86,9 @@ h1 {
 }
 
 .card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -99,6 +116,7 @@ label {
   display: grid;
   gap: 8px;
   font-weight: 600;
+  min-width: 0;
 }
 
 label span {
@@ -108,6 +126,8 @@ label span {
 input,
 select {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px 15px;
@@ -185,6 +205,7 @@ select:focus {
   padding: 16px;
   background: #f8faff;
   border: 1px solid #e4ebf7;
+  min-width: 0;
 }
 
 .summary-grid span {
@@ -198,11 +219,16 @@ select:focus {
 }
 
 .table-wrap {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
   width: 100%;
+  min-width: 720px;
   border-collapse: collapse;
 }
 
@@ -212,6 +238,7 @@ td {
   padding: 14px 10px;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
+  white-space: nowrap;
 }
 
 th {
@@ -243,6 +270,7 @@ tbody tr:hover {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 140px;
 }
 
 .action-btn.edit {
@@ -268,6 +296,11 @@ tbody tr:hover {
   .app-header {
     align-items: stretch;
     flex-direction: column;
+    padding: 20px 14px 14px;
+  }
+
+  .layout {
+    padding: 0 14px 24px;
   }
 
   .form-grid,
@@ -276,64 +309,26 @@ tbody tr:hover {
   }
 
   .card {
-    padding: 18px;
-  }
-
-  th,
-  td {
-    min-width: 120px;
-  }
-
-  .filters input,
-  .primary-btn,
-  .secondary-btn {
-    width: 100%;
-  }
-}
-html, body {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-.layout,
-.card,
-.app-header {
-  width: 100%;
-  min-width: 0;
-}
-
-.table-wrap {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-table {
-  min-width: 720px;
-}
-
-@media (max-width: 768px) {
-  .app-header,
-  .layout {
-    padding-left: 14px;
-    padding-right: 14px;
-  }
-
-  .card {
     padding: 16px;
   }
 
-  .form-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
+  .form-actions,
+  .records-topbar,
+  .filters,
   .actions-cell {
     flex-direction: column;
     align-items: stretch;
   }
 
+  .filters input,
+  .primary-btn,
+  .secondary-btn,
   .action-btn {
     width: 100%;
+  }
+
+  th,
+  td {
+    min-width: 110px;
   }
 }
