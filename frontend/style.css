@@ -1,0 +1,292 @@
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --text: #162033;
+  --muted: #657089;
+  --border: #dbe2ee;
+  --primary: #1664f5;
+  --primary-dark: #0f4fc5;
+  --danger: #d92d20;
+  --danger-soft: #fff1f0;
+  --success: #127c56;
+  --success-soft: #ecfdf3;
+  --shadow: 0 18px 50px rgba(20, 32, 70, 0.08);
+  --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(180deg, #eef4ff 0%, #f7f9fc 100%);
+  color: var(--text);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.app-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 18px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--primary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+}
+
+.subtext,
+.section-heading p,
+.empty-state p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 18px 32px;
+  display: grid;
+  gap: 20px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+
+.section-heading h2,
+.empty-state h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.transaction-form,
+.form-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+}
+
+label span {
+  font-size: 0.94rem;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 15px;
+  background: #fff;
+  color: var(--text);
+}
+
+input:focus,
+select:focus {
+  outline: 3px solid rgba(22, 100, 245, 0.14);
+  border-color: var(--primary);
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-actions,
+.records-topbar,
+.filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.primary-btn,
+.secondary-btn,
+.action-btn {
+  border: none;
+  border-radius: 14px;
+  padding: 13px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 46px;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: #fff;
+}
+
+.primary-btn:hover {
+  background: var(--primary-dark);
+}
+
+.secondary-btn {
+  background: #edf2ff;
+  color: var(--primary);
+}
+
+.message {
+  min-height: 24px;
+  margin: 8px 0 0;
+  font-weight: 600;
+}
+
+.message.success {
+  color: var(--success);
+}
+
+.message.error {
+  color: var(--danger);
+}
+
+.summary-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.summary-grid article {
+  border-radius: 16px;
+  padding: 16px;
+  background: #f8faff;
+  border: 1px solid #e4ebf7;
+}
+
+.summary-grid span {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.summary-grid strong {
+  font-size: 1.45rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 14px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+tbody tr:hover {
+  background: #fafcff;
+}
+
+.amount-debit {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.amount-credit,
+.amount-balance.positive {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.amount-balance.negative {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-btn.edit {
+  background: #eef4ff;
+  color: var(--primary);
+}
+
+.action-btn.delete {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.empty-state {
+  padding: 28px 8px 8px;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .form-grid,
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  th,
+  td {
+    min-width: 120px;
+  }
+
+  .filters input,
+  .primary-btn,
+  .secondary-btn {
+    width: 100%;
+  }
+}
