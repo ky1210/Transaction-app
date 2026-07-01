@@ -172,3 +172,17 @@ app.get('/api/export/xlsx', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
+app.delete('/api/transactions', (req, res) => {
+  try {
+    const transactions = readTransactions();
+
+    if (!transactions.length) {
+      return res.json({ message: 'No transactions to clear.' });
+    }
+
+    saveTransactions([]);
+    res.json({ message: 'All transactions cleared successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to clear transactions.' });
+  }
+});

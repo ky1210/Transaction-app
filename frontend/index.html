@@ -4,30 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Transaction App</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-<link rel="manifest" href="./manifest.webmanifest" />
-<meta name="theme-color" content="#1664f5" />
-<link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="theme-color" content="#1664f5" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
 </head>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-      try {
-        await navigator.serviceWorker.register('./sw.js');
-        console.log('Service worker registered');
-      } catch (error) {
-        console.error('Service worker registration failed:', error);
-      }
-    });
-  }
-</script>
 <body>
   <header class="app-header">
     <div>
-      <p class="eyebrow">Localhost expense record keeper</p>
+      <p class="eyebrow">Expense record keeper</p>
       <h1>Transaction Book</h1>
       <p class="subtext">Track debit, credit, description, date, and download a real Excel backup.</p>
     </div>
@@ -71,13 +59,14 @@
           <button type="button" class="secondary-btn" id="resetBtn">Clear</button>
         </div>
       </form>
+
       <p id="message" class="message" aria-live="polite"></p>
     </section>
 
     <section class="card summary-card">
       <div class="section-heading">
         <h2>Summary</h2>
-        <p>Live totals from your locally saved records.</p>
+        <p>Live totals from your saved records.</p>
       </div>
 
       <div class="summary-grid">
@@ -105,6 +94,7 @@
 
         <div class="filters">
           <input type="text" id="searchInput" placeholder="Search description..." />
+          <button type="button" id="clearAllBtn" class="danger-btn">Clear All Records</button>
         </div>
       </div>
 
@@ -131,6 +121,18 @@
     </section>
   </main>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async () => {
+        try {
+          await navigator.serviceWorker.register('./sw.js');
+          console.log('Service worker registered');
+        } catch (error) {
+          console.error('Service worker registration failed:', error);
+        }
+      });
+    }
+  </script>
   <script src="script.js"></script>
 </body>
 </html>

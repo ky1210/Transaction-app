@@ -16,6 +16,7 @@ const exportBtn = document.getElementById('exportBtn');
 const searchInput = document.getElementById('searchInput');
 const emptyState = document.getElementById('emptyState');
 const saveBtn = document.getElementById('saveBtn');
+const clearAllBtn = document.getElementById('clearAllBtn');
 
 let transactions = [];
 
@@ -113,7 +114,7 @@ async function loadTransactions() {
     transactions = await response.json();
     renderTable();
   } catch (error) {
-    showMessage('Could not load transactions. Start the backend server.', 'error');
+    showMessage('Could not load transactions. Please check the backend.', 'error');
   }
 }
 
@@ -156,6 +157,7 @@ async function deleteTransaction(id) {
     });
 
     const data = await response.json();
+
     if (!response.ok) {
       throw new Error(data.message || 'Delete failed.');
     }
@@ -164,6 +166,42 @@ async function deleteTransaction(id) {
     await loadTransactions();
   } catch (error) {
     showMessage(error.message, 'error');
+  }
+}
+
+async function clearAllTransactions() {
+  if (!transactions.length) {
+    showMessage('No records to clear.', 'error');
+    return;
+  }
+
+  const confirmationText = window.prompt(
+    'This will permanently delete all records.\n\nType CLEAR to continue.'
+  );
+
+  if (confirmationText === null) return;
+
+  if (confirmationText.trim().toUpperCase() !== 'CLEAR') {
+    showMessage('Clear all cancelled. You must type CLEAR exactly.', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/transactions`, {
+      method: 'DELETE'
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to clear records.');
+    }
+
+    showMessage('All records cleared successfully.');
+    resetForm();
+    await loadTransactions();
+  } catch (error) {
+    showMessage(error.message || 'Failed to clear records.', 'error');
   }
 }
 
@@ -185,6 +223,7 @@ function handleTableClick(event) {
   if (!button) return;
 
   const { id, action } = button.dataset;
+
   if (action === 'edit') editTransaction(id);
   if (action === 'delete') deleteTransaction(id);
 }
@@ -198,6 +237,7 @@ resetBtn.addEventListener('click', resetForm);
 exportBtn.addEventListener('click', exportXlsx);
 searchInput.addEventListener('input', renderTable);
 tableBody.addEventListener('click', handleTableClick);
+clearAllBtn?.addEventListener('click', clearAllTransactions);
 
 dateInput.value = new Date().toISOString().split('T')[0];
 loadTransactions();
