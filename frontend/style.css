@@ -290,3 +290,50 @@ tbody tr:hover {
     width: 100%;
   }
 }
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.layout,
+.card,
+.app-header {
+  width: 100%;
+  min-width: 0;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  min-width: 720px;
+}
+
+@media (max-width: 768px) {
+  .app-header,
+  .layout {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions-cell {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+}
