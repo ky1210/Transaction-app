@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://transaction-app-x3ks.onrender.com/api';
 
 const transactionForm = document.getElementById('transactionForm');
 const transactionIdInput = document.getElementById('transactionId');
