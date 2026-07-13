@@ -1,7 +1,7 @@
 {
   "name": "transaction-app-backend",
-  "version": "1.0.0",
-  "description": "Localhost transaction tracker backend with XLSX export",
+  "version": "2.0.0",
+  "description": "Transaction App backend with accounts, filters, and XLSX export",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

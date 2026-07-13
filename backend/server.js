@@ -16,46 +16,31 @@ if (!fs.existsSync(dataDir)) {
 }
 
 if (!fs.existsSync(accountsFile)) {
-  fs.writeFileSync(
-    accountsFile,
-    JSON.stringify(
-      [
-        {
-          id: 'acc-default',
-          name: 'Cash',
-          createdAt: new Date().toISOString()
-        }
-      ],
-      null,
-      2
-    )
-  );
+  fs.writeFileSync(accountsFile, JSON.stringify([], null, 2));
 }
 
 if (!fs.existsSync(transactionsFile)) {
   fs.writeFileSync(transactionsFile, JSON.stringify([], null, 2));
 }
 
-app.use(
-  cors({
-    origin: [
-      'http://127.0.0.1:5500',
-      'http://localhost:5500',
-      process.env.FRONTEND_URL
-    ].filter(Boolean),
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type']
-  })
-);
+app.use(cors({
+  origin: [
+    'http://127.0.0.1:5500',
+    'http://localhost:5500',
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type']
+}));
 
 app.use(express.json());
 
-function readJson(filePath, fallback = []) {
+function readJson(filePath) {
   try {
     const raw = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(raw);
   } catch (error) {
-    return fallback;
+    return [];
   }
 }
 
@@ -64,7 +49,7 @@ function writeJson(filePath, data) {
 }
 
 function readAccounts() {
-  return readJson(accountsFile, []);
+  return readJson(accountsFile);
 }
 
 function saveAccounts(accounts) {
@@ -72,53 +57,75 @@ function saveAccounts(accounts) {
 }
 
 function readTransactions() {
-  return readJson(transactionsFile, []);
+  return readJson(transactionsFile);
 }
 
 function saveTransactions(transactions) {
   writeJson(transactionsFile, transactions);
 }
 
+function makeId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function getAccountSummary(account, transactions) {
+  const accountTransactions = transactions.filter((item) => item.accountId === account.id);
+  const totalCredit = accountTransactions
+    .filter((item) => item.type === 'credit')
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+  const totalDebit = accountTransactions
+    .filter((item) => item.type === 'debit')
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+  return {
+    ...account,
+    totalCredit,
+    totalDebit,
+    balance: totalCredit - totalDebit,
+    transactionCount: accountTransactions.length
+  };
+}
+
+function enrichTransaction(transaction, accounts) {
+  const account = accounts.find((item) => item.id === transaction.accountId);
+  const amount = Number(transaction.amount || 0);
+
+  return {
+    ...transaction,
+    amount,
+    balanceImpact: transaction.type === 'credit' ? amount : -amount,
+    accountName: account ? account.name : 'Unknown Account'
+  };
+}
+
 function normalizeAccount(body) {
-  const name = String(body.name || '').trim();
+  const name = (body.name || '').trim();
 
   if (!name) {
     return { error: 'Account name is required.' };
   }
 
-  if (name.length < 2) {
-    return { error: 'Account name must be at least 2 characters.' };
-  }
-
   return { name };
 }
 
-function normalizeTransaction(body, accounts) {
-  const accountId = String(body.accountId || '').trim();
-  const date = String(body.date || '').trim();
-  const description = String(body.description || '').trim();
-  const type = String(body.type || '').trim().toLowerCase();
-  const amount = Number(body.amount);
+function normalizeTransaction(body) {
+  const accountId = (body.accountId || '').trim();
+  const date = (body.date || '').trim();
+  const description = (body.description || '').trim();
+  const type = (body.type || '').trim().toLowerCase();
+  const amount = Number(body.amount || 0);
 
   if (!accountId) {
     return { error: 'Account is required.' };
   }
 
-  const account = accounts.find((item) => item.id === accountId);
-  if (!account) {
-    return { error: 'Selected account does not exist.' };
-  }
-
-  if (!date) {
-    return { error: 'Date is required.' };
-  }
-
-  if (!description) {
-    return { error: 'Description is required.' };
+  if (!date || !description) {
+    return { error: 'Date and description are required.' };
   }
 
   if (!['debit', 'credit'].includes(type)) {
-    return { error: 'Transaction type must be debit or credit.' };
+    return { error: 'Type must be debit or credit.' };
   }
 
   if (Number.isNaN(amount) || amount <= 0) {
@@ -127,72 +134,68 @@ function normalizeTransaction(body, accounts) {
 
   return {
     accountId,
-    accountName: account.name,
     date,
     description,
     type,
-    amount: Number(amount.toFixed(2)),
-    debit: type === 'debit' ? Number(amount.toFixed(2)) : 0,
-    credit: type === 'credit' ? Number(amount.toFixed(2)) : 0,
-    balanceImpact: type === 'credit' ? Number(amount.toFixed(2)) : -Number(amount.toFixed(2))
+    amount
   };
 }
 
-function sortTransactions(items) {
-  return [...items].sort((a, b) => {
-    const dateCompare = new Date(b.date) - new Date(a.date);
-    if (dateCompare !== 0) return dateCompare;
-    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-  });
-}
+function getFilteredTransactions(allTransactions, query) {
+  let items = [...allTransactions];
 
-function buildAccountSummary(accounts, transactions) {
-  return accounts.map((account) => {
-    const accountTransactions = transactions.filter((item) => item.accountId === account.id);
-    const totalDebit = accountTransactions.reduce((sum, item) => sum + Number(item.debit || 0), 0);
-    const totalCredit = accountTransactions.reduce((sum, item) => sum + Number(item.credit || 0), 0);
+  if (query.accountId) {
+    items = items.filter((item) => item.accountId === query.accountId);
+  }
 
-    return {
-      ...account,
-      totalDebit,
-      totalCredit,
-      balance: totalCredit - totalDebit,
-      transactionCount: accountTransactions.length
-    };
-  });
+  if (query.type && ['debit', 'credit'].includes(query.type)) {
+    items = items.filter((item) => item.type === query.type);
+  }
+
+  if (query.search) {
+    const term = query.search.toLowerCase();
+    items = items.filter((item) => item.description.toLowerCase().includes(term));
+  }
+
+  if (query.from) {
+    items = items.filter((item) => item.date >= query.from);
+  }
+
+  if (query.to) {
+    items = items.filter((item) => item.date <= query.to);
+  }
+
+  return items.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-/* Accounts */
-
 app.get('/api/accounts', (req, res) => {
   const accounts = readAccounts();
   const transactions = readTransactions();
-  const summary = buildAccountSummary(accounts, transactions);
-  res.json(summary);
+  const result = accounts.map((account) => getAccountSummary(account, transactions));
+  res.json(result);
 });
 
 app.post('/api/accounts', (req, res) => {
-  const accounts = readAccounts();
   const result = normalizeAccount(req.body);
-
   if (result.error) {
     return res.status(400).json({ message: result.error });
   }
 
+  const accounts = readAccounts();
   const duplicate = accounts.find(
     (item) => item.name.toLowerCase() === result.name.toLowerCase()
   );
 
   if (duplicate) {
-    return res.status(400).json({ message: 'Account with this name already exists.' });
+    return res.status(400).json({ message: 'Account already exists.' });
   }
 
   const account = {
-    id: `acc-${Date.now()}`,
+    id: makeId(),
     name: result.name,
     createdAt: new Date().toISOString()
   };
@@ -205,7 +208,6 @@ app.post('/api/accounts', (req, res) => {
 
 app.put('/api/accounts/:id', (req, res) => {
   const accounts = readAccounts();
-  const transactions = readTransactions();
   const index = accounts.findIndex((item) => item.id === req.params.id);
 
   if (index === -1) {
@@ -224,103 +226,61 @@ app.put('/api/accounts/:id', (req, res) => {
   );
 
   if (duplicate) {
-    return res.status(400).json({ message: 'Another account with this name already exists.' });
+    return res.status(400).json({ message: 'Another account already uses this name.' });
   }
 
-  const oldName = accounts[index].name;
   accounts[index] = {
     ...accounts[index],
     name: result.name,
     updatedAt: new Date().toISOString()
   };
 
-  const updatedTransactions = transactions.map((item) =>
-    item.accountId === req.params.id
-      ? { ...item, accountName: result.name }
-      : item
-  );
-
   saveAccounts(accounts);
-  saveTransactions(updatedTransactions);
-
-  res.json({
-    message: `Account "${oldName}" updated successfully.`,
-    account: accounts[index]
-  });
+  res.json(accounts[index]);
 });
 
 app.delete('/api/accounts/:id', (req, res) => {
   const accounts = readAccounts();
-  const transactions = readTransactions();
-  const index = accounts.findIndex((item) => item.id === req.params.id);
+  const accountExists = accounts.some((item) => item.id === req.params.id);
 
-  if (index === -1) {
+  if (!accountExists) {
     return res.status(404).json({ message: 'Account not found.' });
   }
 
-  if (accounts.length === 1) {
-    return res.status(400).json({ message: 'At least one account must remain.' });
-  }
+  const remainingAccounts = accounts.filter((item) => item.id !== req.params.id);
+  const transactions = readTransactions();
+  const remainingTransactions = transactions.filter((item) => item.accountId !== req.params.id);
 
-  const hasTransactions = transactions.some((item) => item.accountId === req.params.id);
-  if (hasTransactions) {
-    return res.status(400).json({
-      message: 'This account has transactions. Delete or move them first.'
-    });
-  }
+  saveAccounts(remainingAccounts);
+  saveTransactions(remainingTransactions);
 
-  const removed = accounts[index];
-  const filtered = accounts.filter((item) => item.id !== req.params.id);
-  saveAccounts(filtered);
-
-  res.json({ message: `Account "${removed.name}" deleted successfully.` });
+  res.json({ message: 'Account and linked transactions deleted successfully.' });
 });
 
-/* Transactions */
-
 app.get('/api/transactions', (req, res) => {
+  const accounts = readAccounts();
   const transactions = readTransactions();
-  const { accountId, type, search, from, to } = req.query;
-
-  let filtered = [...transactions];
-
-  if (accountId && accountId !== 'all') {
-    filtered = filtered.filter((item) => item.accountId === accountId);
-  }
-
-  if (type && type !== 'all') {
-    filtered = filtered.filter((item) => item.type === type);
-  }
-
-  if (search) {
-    const term = String(search).trim().toLowerCase();
-    filtered = filtered.filter((item) =>
-      String(item.description || '').toLowerCase().includes(term)
-    );
-  }
-
-  if (from) {
-    filtered = filtered.filter((item) => item.date >= from);
-  }
-
-  if (to) {
-    filtered = filtered.filter((item) => item.date <= to);
-  }
-
-  res.json(sortTransactions(filtered));
+  const filtered = getFilteredTransactions(transactions, req.query);
+  const result = filtered.map((item) => enrichTransaction(item, accounts));
+  res.json(result);
 });
 
 app.post('/api/transactions', (req, res) => {
   const accounts = readAccounts();
   const transactions = readTransactions();
 
-  const result = normalizeTransaction(req.body, accounts);
+  const result = normalizeTransaction(req.body);
   if (result.error) {
     return res.status(400).json({ message: result.error });
   }
 
+  const accountExists = accounts.some((item) => item.id === result.accountId);
+  if (!accountExists) {
+    return res.status(400).json({ message: 'Selected account does not exist.' });
+  }
+
   const transaction = {
-    id: `txn-${Date.now()}`,
+    id: makeId(),
     createdAt: new Date().toISOString(),
     ...result
   };
@@ -328,7 +288,7 @@ app.post('/api/transactions', (req, res) => {
   transactions.push(transaction);
   saveTransactions(transactions);
 
-  res.status(201).json(transaction);
+  res.status(201).json(enrichTransaction(transaction, accounts));
 });
 
 app.put('/api/transactions/:id', (req, res) => {
@@ -340,9 +300,14 @@ app.put('/api/transactions/:id', (req, res) => {
     return res.status(404).json({ message: 'Transaction not found.' });
   }
 
-  const result = normalizeTransaction(req.body, accounts);
+  const result = normalizeTransaction(req.body);
   if (result.error) {
     return res.status(400).json({ message: result.error });
+  }
+
+  const accountExists = accounts.some((item) => item.id === result.accountId);
+  if (!accountExists) {
+    return res.status(400).json({ message: 'Selected account does not exist.' });
   }
 
   transactions[index] = {
@@ -352,7 +317,7 @@ app.put('/api/transactions/:id', (req, res) => {
   };
 
   saveTransactions(transactions);
-  res.json(transactions[index]);
+  res.json(enrichTransaction(transactions[index], accounts));
 });
 
 app.delete('/api/transactions/:id', (req, res) => {
@@ -368,75 +333,39 @@ app.delete('/api/transactions/:id', (req, res) => {
 });
 
 app.delete('/api/transactions', (req, res) => {
-  const { accountId } = req.query;
+  const accountId = req.query.accountId;
   const transactions = readTransactions();
 
-  if (!transactions.length) {
-    return res.json({ message: 'No transactions to clear.' });
+  if (!accountId) {
+    saveTransactions([]);
+    return res.json({ message: 'All transactions cleared successfully.' });
   }
 
-  if (accountId && accountId !== 'all') {
-    const remaining = transactions.filter((item) => item.accountId !== accountId);
-    const removedCount = transactions.length - remaining.length;
-
-    if (!removedCount) {
-      return res.json({ message: 'No transactions found for this account.' });
-    }
-
-    saveTransactions(remaining);
-    return res.json({ message: `Cleared ${removedCount} transaction(s) from this account.` });
-  }
-
-  saveTransactions([]);
-  res.json({ message: 'All transactions cleared successfully.' });
+  const filtered = transactions.filter((item) => item.accountId !== accountId);
+  saveTransactions(filtered);
+  res.json({ message: 'Account transactions cleared successfully.' });
 });
 
-/* Export */
-
 app.get('/api/export/xlsx', (req, res) => {
+  const accounts = readAccounts();
   const transactions = readTransactions();
-  const { accountId, type, search, from, to } = req.query;
+  const filtered = getFilteredTransactions(transactions, req.query);
+  const enriched = filtered.map((item) => enrichTransaction(item, accounts));
 
-  let filtered = [...transactions];
-
-  if (accountId && accountId !== 'all') {
-    filtered = filtered.filter((item) => item.accountId === accountId);
-  }
-
-  if (type && type !== 'all') {
-    filtered = filtered.filter((item) => item.type === type);
-  }
-
-  if (search) {
-    const term = String(search).trim().toLowerCase();
-    filtered = filtered.filter((item) =>
-      String(item.description || '').toLowerCase().includes(term)
-    );
-  }
-
-  if (from) {
-    filtered = filtered.filter((item) => item.date >= from);
-  }
-
-  if (to) {
-    filtered = filtered.filter((item) => item.date <= to);
-  }
-
-  const rows = sortTransactions(filtered).map((item, index) => ({
+  const rows = enriched.map((item, index) => ({
     'S. No.': index + 1,
-    Date: item.date,
     Account: item.accountName,
+    Date: item.date,
     Description: item.description,
     Type: item.type,
     Amount: item.amount,
-    Debit: item.debit,
-    Credit: item.credit,
-    Balance: item.balanceImpact,
-    'Created At': item.createdAt || ''
+    'Balance Impact': item.balanceImpact,
+    'Created At': item.createdAt || '',
+    'Updated At': item.updatedAt || ''
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(
-    rows.length ? rows : [{ Note: 'No transactions available' }]
+    rows.length ? rows : [{ Note: 'No transactions available for current filter' }]
   );
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions');
@@ -446,7 +375,7 @@ app.get('/api/export/xlsx', (req, res) => {
     bookType: 'xlsx'
   });
 
-  const fileName = `transactions-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  const fileName = `transaction-app-backup-${new Date().toISOString().slice(0, 10)}.xlsx`;
   res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
   res.setHeader(
     'Content-Type',
