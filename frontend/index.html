@@ -11,26 +11,38 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <meta name="theme-color" content="#1664f5" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
   <header class="app-header">
     <div>
       <p class="eyebrow">Expense record keeper</p>
       <h1>Transaction Book</h1>
-      <p class="subtext">Track debit, credit, description, date, and download a real Excel backup.</p>
+      <p class="subtext">Track debit, credit, description, date, and download Excel or PDF backups.</p>
     </div>
-    <button id="exportBtn" class="primary-btn">Download XLSX</button>
+
+    <div class="header-actions">
+      <button id="installBtn" class="secondary-btn hidden" type="button">Install App</button>
+      <button id="exportPdfBtn" class="secondary-btn" type="button">Download PDF</button>
+      <button id="exportBtn" class="primary-btn" type="button">Download XLSX</button>
+    </div>
   </header>
 
   <main class="layout">
     <section class="card form-card">
       <div class="section-heading">
         <h2>Add transaction</h2>
-        <p>Quick entry form with date, description, debit, and credit.</p>
+        <p>Quick entry form with one clear transaction type.</p>
       </div>
 
       <form id="transactionForm" class="transaction-form">
         <input type="hidden" id="transactionId" />
+
+        <div class="type-toggle">
+          <button type="button" class="type-btn active" data-type="debit" id="typeDebitBtn">Debit</button>
+          <button type="button" class="type-btn" data-type="credit" id="typeCreditBtn">Credit</button>
+        </div>
 
         <div class="form-grid">
           <label>
@@ -44,13 +56,8 @@
           </label>
 
           <label>
-            <span>Debit</span>
-            <input type="number" id="debit" min="0" step="0.01" placeholder="0.00" />
-          </label>
-
-          <label>
-            <span>Credit</span>
-            <input type="number" id="credit" min="0" step="0.01" placeholder="0.00" />
+            <span>Amount</span>
+            <input type="number" id="amount" min="0" step="0.01" placeholder="0.00" required />
           </label>
         </div>
 
@@ -89,17 +96,20 @@
       <div class="records-topbar">
         <div class="section-heading">
           <h2>Records</h2>
-          <p>Search your saved entries by description.</p>
+          <p>Search and filter your saved entries.</p>
         </div>
 
         <div class="filters">
           <input type="text" id="searchInput" placeholder="Search description..." />
+          <input type="date" id="fromDate" />
+          <input type="date" id="toDate" />
+          <button type="button" id="clearFiltersBtn" class="secondary-btn">Clear Filters</button>
           <button type="button" id="clearAllBtn" class="danger-btn">Clear All Records</button>
         </div>
       </div>
 
       <div class="table-wrap">
-        <table>
+        <table id="transactionTable">
           <thead>
             <tr>
               <th>Date</th>
@@ -116,23 +126,11 @@
 
       <div id="emptyState" class="empty-state hidden">
         <h3>No transactions found</h3>
-        <p>Add a new transaction or change your search.</p>
+        <p>Add a new transaction or change your filters.</p>
       </div>
     </section>
   </main>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', async () => {
-        try {
-          await navigator.serviceWorker.register('./sw.js');
-          console.log('Service worker registered');
-        } catch (error) {
-          console.error('Service worker registration failed:', error);
-        }
-      });
-    }
-  </script>
   <script src="script.js"></script>
 </body>
 </html>

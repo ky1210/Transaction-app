@@ -4,8 +4,7 @@ const transactionForm = document.getElementById('transactionForm');
 const transactionIdInput = document.getElementById('transactionId');
 const dateInput = document.getElementById('date');
 const descriptionInput = document.getElementById('description');
-const debitInput = document.getElementById('debit');
-const creditInput = document.getElementById('credit');
+const amountInput = document.getElementById('amount');
 const messageBox = document.getElementById('message');
 const tableBody = document.getElementById('transactionTableBody');
 const totalDebitEl = document.getElementById('totalDebit');
@@ -13,12 +12,20 @@ const totalCreditEl = document.getElementById('totalCredit');
 const netBalanceEl = document.getElementById('netBalance');
 const resetBtn = document.getElementById('resetBtn');
 const exportBtn = document.getElementById('exportBtn');
+const exportPdfBtn = document.getElementById('exportPdfBtn');
 const searchInput = document.getElementById('searchInput');
+const fromDateInput = document.getElementById('fromDate');
+const toDateInput = document.getElementById('toDate');
+const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 const emptyState = document.getElementById('emptyState');
 const saveBtn = document.getElementById('saveBtn');
 const clearAllBtn = document.getElementById('clearAllBtn');
+const installBtn = document.getElementById('installBtn');
+const typeButtons = document.querySelectorAll('.type-btn');
 
 let transactions = [];
+let selectedType = 'debit';
+let deferredPrompt = null;
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-IN', {
@@ -39,12 +46,21 @@ function showMessage(text, type = 'success') {
   }
 }
 
+function setTransactionType(type) {
+  selectedType = type;
+  typeButtons.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.type === type);
+  });
+}
+
 function getPayload() {
+  const amount = Number(amountInput.value || 0);
+
   return {
     date: dateInput.value,
     description: descriptionInput.value.trim(),
-    debit: debitInput.value,
-    credit: creditInput.value
+    debit: selectedType === 'debit' ? amount : 0,
+    credit: selectedType === 'credit' ? amount : 0
   };
 }
 
@@ -53,6 +69,7 @@ function resetForm() {
   transactionIdInput.value = '';
   saveBtn.textContent = 'Save transaction';
   dateInput.value = new Date().toISOString().split('T')[0];
+  setTransactionType('debit');
 }
 
 function renderSummary(items) {
@@ -68,9 +85,14 @@ function renderSummary(items) {
 
 function getFilteredTransactions() {
   const searchTerm = searchInput.value.trim().toLowerCase();
+  const fromDate = fromDateInput.value;
+  const toDate = toDateInput.value;
 
   return transactions.filter((item) => {
-    return item.description.toLowerCase().includes(searchTerm);
+    const matchesSearch = item.description.toLowerCase().includes(searchTerm);
+    const matchesFrom = !fromDate || item.date >= fromDate;
+    const matchesTo = !toDate || item.date <= toDate;
+    return matchesSearch && matchesFrom && matchesTo;
   });
 }
 
@@ -78,11 +100,7 @@ function renderTable() {
   const items = getFilteredTransactions();
   tableBody.innerHTML = '';
 
-  if (!items.length) {
-    emptyState.classList.remove('hidden');
-  } else {
-    emptyState.classList.add('hidden');
-  }
+  emptyState.classList.toggle('hidden', items.length > 0);
 
   items.forEach((item) => {
     const row = document.createElement('tr');
@@ -101,7 +119,6 @@ function renderTable() {
         </div>
       </td>
     `;
-
     tableBody.appendChild(row);
   });
 
@@ -206,14 +223,14 @@ async function clearAllTransactions() {
 }
 
 function editTransaction(id) {
-  const item = transactions.find((entry) => entry.id === id);
+  const item = transactions.find((entry) => String(entry.id) === String(id));
   if (!item) return;
 
   transactionIdInput.value = item.id;
   dateInput.value = item.date;
   descriptionInput.value = item.description;
-  debitInput.value = item.debit || '';
-  creditInput.value = item.credit || '';
+  amountInput.value = Number(item.debit) ? item.debit : item.credit;
+  setTransactionType(Number(item.debit) ? 'debit' : 'credit');
   saveBtn.textContent = 'Update transaction';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -223,21 +240,102 @@ function handleTableClick(event) {
   if (!button) return;
 
   const { id, action } = button.dataset;
-
   if (action === 'edit') editTransaction(id);
   if (action === 'delete') deleteTransaction(id);
 }
 
 function exportXlsx() {
-  window.open(`${API_BASE}/export/xlsx`, '_blank');
+  window.location.href = `${API_BASE}/export/xlsx`;
+}
+
+function exportPdf() {
+  const items = getFilteredTransactions();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text('Transaction Book Report', 14, 16);
+  doc.setFontSize(10);
+  doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 14, 22);
+
+  const rows = items.map((item) => [
+    item.date,
+    item.description,
+    Number(item.debit) ? formatCurrency(item.debit) : '-',
+    Number(item.credit) ? formatCurrency(item.credit) : '-',
+    formatCurrency(item.balanceImpact)
+  ]);
+
+  doc.autoTable({
+    startY: 28,
+    head: [['Date', 'Description', 'Debit', 'Credit', 'Balance']],
+    body: rows
+  });
+
+  doc.save('transaction-book-report.pdf');
+}
+
+function clearFilters() {
+  searchInput.value = '';
+  fromDateInput.value = '';
+  toDateInput.value = '';
+  renderTable();
+}
+
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
+        await navigator.serviceWorker.register('./sw.js');
+      } catch (error) {
+        console.error('Service worker registration failed:', error);
+      }
+    });
+  }
+}
+
+function setupInstallPrompt() {
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    installBtn?.classList.remove('hidden');
+  });
+
+  installBtn?.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.classList.add('hidden');
+
+    if (choice.outcome === 'accepted') {
+      showMessage('App installed successfully.');
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    installBtn?.classList.add('hidden');
+  });
 }
 
 transactionForm.addEventListener('submit', saveTransaction);
 resetBtn.addEventListener('click', resetForm);
 exportBtn.addEventListener('click', exportXlsx);
+exportPdfBtn.addEventListener('click', exportPdf);
 searchInput.addEventListener('input', renderTable);
+fromDateInput.addEventListener('input', renderTable);
+toDateInput.addEventListener('input', renderTable);
+clearFiltersBtn.addEventListener('click', clearFilters);
 tableBody.addEventListener('click', handleTableClick);
 clearAllBtn?.addEventListener('click', clearAllTransactions);
+typeButtons.forEach((btn) => {
+  btn.addEventListener('click', () => setTransactionType(btn.dataset.type));
+});
 
 dateInput.value = new Date().toISOString().split('T')[0];
+setTransactionType('debit');
+registerServiceWorker();
+setupInstallPrompt();
 loadTransactions();

@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Transaction Book",
   "short_name": "Transaction",
   "start_url": "./",
@@ -7,7 +8,8 @@
   "orientation": "portrait",
   "background_color": "#f5f7fb",
   "theme_color": "#1664f5",
-  "description": "Track debit, credit, and export XLSX backups.",
+  "description": "Track debit, credit, export XLSX and PDF backups, and manage daily records.",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./icons/icon-192.png",
