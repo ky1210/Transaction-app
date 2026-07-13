@@ -1,10 +1,14 @@
+
 [
   {
-    "id": "1782748196844",
-    "createdAt": "2026-06-29T15:49:56.844Z",
+    "id": "txn-1",
+    "createdAt": "2026-07-13T00:00:00.000Z",
+    "accountId": "acc-default",
+    "accountName": "Cash",
     "date": "2026-06-29",
-    "month": "June",
     "description": "diesel creata",
+    "type": "debit",
+    "amount": 10000,
     "debit": 10000,
     "credit": 0,
     "balanceImpact": -10000

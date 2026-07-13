@@ -10,126 +10,181 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <meta name="theme-color" content="#1664f5" />
-  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.jpg" />
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-  <header class="app-header">
-    <div>
-      <p class="eyebrow">Expense record keeper</p>
-      <h1>Transaction Book</h1>
-      <p class="subtext">Track debit, credit, description, date, and download Excel or PDF backups.</p>
-    </div>
-
-    <div class="header-actions">
-      <button id="installBtn" class="secondary-btn hidden" type="button">Install App</button>
-      <button id="exportPdfBtn" class="secondary-btn" type="button">Download PDF</button>
-      <button id="exportBtn" class="primary-btn" type="button">Download XLSX</button>
-    </div>
-  </header>
-
-  <main class="layout">
-    <section class="card form-card">
-      <div class="section-heading">
-        <h2>Add transaction</h2>
-        <p>Quick entry form with one clear transaction type.</p>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Expense record keeper</p>
+        <h1>Transaction Dashboard</h1>
+        <p class="subtext">Manage multiple accounts, add records quickly, and export your data anytime.</p>
       </div>
 
-      <form id="transactionForm" class="transaction-form">
-        <input type="hidden" id="transactionId" />
-
-        <div class="type-toggle">
-          <button type="button" class="type-btn active" data-type="debit" id="typeDebitBtn">Debit</button>
-          <button type="button" class="type-btn" data-type="credit" id="typeCreditBtn">Credit</button>
-        </div>
-
-        <div class="form-grid">
-          <label>
-            <span>Date</span>
-            <input type="date" id="date" required />
-          </label>
-
-          <label class="full-width">
-            <span>Description</span>
-            <input type="text" id="description" placeholder="Milk, recharge, client payment, rent..." required />
-          </label>
-
-          <label>
-            <span>Amount</span>
-            <input type="number" id="amount" min="0" step="0.01" placeholder="0.00" required />
-          </label>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="primary-btn" id="saveBtn">Save transaction</button>
-          <button type="button" class="secondary-btn" id="resetBtn">Clear</button>
-        </div>
-      </form>
-
-      <p id="message" class="message" aria-live="polite"></p>
-    </section>
-
-    <section class="card summary-card">
-      <div class="section-heading">
-        <h2>Summary</h2>
-        <p>Live totals from your saved records.</p>
+      <div class="topbar-actions">
+        <button id="installBtn" class="secondary-btn hidden" type="button">Install App</button>
+        <button id="exportPdfBtn" class="secondary-btn" type="button">Download PDF</button>
+        <button id="exportBtn" class="primary-btn" type="button">Download XLSX</button>
       </div>
+    </header>
 
-      <div class="summary-grid">
-        <article>
-          <span>Total debit</span>
-          <strong id="totalDebit">₹0.00</strong>
-        </article>
-        <article>
-          <span>Total credit</span>
-          <strong id="totalCredit">₹0.00</strong>
-        </article>
-        <article>
-          <span>Net balance</span>
-          <strong id="netBalance">₹0.00</strong>
-        </article>
-      </div>
-    </section>
+    <main class="dashboard-grid">
+      <section class="panel hero-panel">
+        <div class="hero-main">
+          <div class="account-picker-row">
+            <div class="field">
+              <label for="accountSelect">Selected account</label>
+              <select id="accountSelect"></select>
+            </div>
 
-    <section class="card records-card">
-      <div class="records-topbar">
-        <div class="section-heading">
-          <h2>Records</h2>
-          <p>Search and filter your saved entries.</p>
+            <div class="account-actions">
+              <button type="button" id="newAccountBtn" class="secondary-btn">Add Account</button>
+              <button type="button" id="renameAccountBtn" class="secondary-btn">Rename</button>
+              <button type="button" id="deleteAccountBtn" class="danger-btn">Delete</button>
+            </div>
+          </div>
+
+          <div id="accountsOverview" class="accounts-overview"></div>
+        </div>
+      </section>
+
+      <section class="panel summary-panel">
+        <div class="section-head">
+          <div>
+            <h2>Overview</h2>
+            <p>Quick totals for the selected account.</p>
+          </div>
         </div>
 
-        <div class="filters">
-          <input type="text" id="searchInput" placeholder="Search description..." />
-          <input type="date" id="fromDate" />
-          <input type="date" id="toDate" />
+        <div class="summary-grid">
+          <article class="summary-card">
+            <span>Total credit</span>
+            <strong id="totalCredit">₹0.00</strong>
+          </article>
+
+          <article class="summary-card">
+            <span>Total debit</span>
+            <strong id="totalDebit">₹0.00</strong>
+          </article>
+
+          <article class="summary-card">
+            <span>Net balance</span>
+            <strong id="netBalance">₹0.00</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel form-panel">
+        <div class="section-head">
+          <div>
+            <h2>Add transaction</h2>
+            <p>Quick entry for debit or credit in the selected account.</p>
+          </div>
+        </div>
+
+        <form id="transactionForm" class="transaction-form">
+          <input type="hidden" id="transactionId" />
+
+          <div class="type-toggle">
+            <button type="button" class="type-btn active" data-type="debit">Debit</button>
+            <button type="button" class="type-btn" data-type="credit">Credit</button>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="date">Date</label>
+              <input type="date" id="date" required />
+            </div>
+
+            <div class="field">
+              <label for="amount">Amount</label>
+              <input type="number" id="amount" min="0" step="0.01" placeholder="0.00" required />
+            </div>
+
+            <div class="field full-span">
+              <label for="description">Description</label>
+              <input type="text" id="description" placeholder="Milk, recharge, client payment, rent..." required />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="saveBtn" class="primary-btn">Save transaction</button>
+            <button type="button" id="resetBtn" class="secondary-btn">Clear</button>
+          </div>
+        </form>
+
+        <p id="message" class="message" aria-live="polite"></p>
+      </section>
+
+      <section class="panel records-panel">
+        <div class="section-head records-head">
+          <div>
+            <h2>Records</h2>
+            <p>Search, filter, and review transactions clearly.</p>
+          </div>
+
+          <div class="chip-row">
+            <button type="button" class="chip active" data-filter-type="all">All</button>
+            <button type="button" class="chip" data-filter-type="credit">Credit</button>
+            <button type="button" class="chip" data-filter-type="debit">Debit</button>
+          </div>
+        </div>
+
+        <div class="filters-grid">
+          <div class="field">
+            <label for="searchInput">Search</label>
+            <input type="text" id="searchInput" placeholder="Search description..." />
+          </div>
+
+          <div class="field">
+            <label for="fromDate">From</label>
+            <input type="date" id="fromDate" />
+          </div>
+
+          <div class="field">
+            <label for="toDate">To</label>
+            <input type="date" id="toDate" />
+          </div>
+
+          <div class="field">
+            <label for="recordAccountFilter">Account</label>
+            <select id="recordAccountFilter"></select>
+          </div>
+        </div>
+
+        <div class="records-actions">
           <button type="button" id="clearFiltersBtn" class="secondary-btn">Clear Filters</button>
-          <button type="button" id="clearAllBtn" class="danger-btn">Clear All Records</button>
+          <button type="button" id="clearAllBtn" class="danger-btn">Clear Selected Records</button>
         </div>
-      </div>
 
-      <div class="table-wrap">
-        <table id="transactionTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Debit</th>
-              <th>Credit</th>
-              <th>Balance</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="transactionTableBody"></tbody>
-        </table>
-      </div>
+        <div class="desktop-table-wrap">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Account</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Balance Impact</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="transactionTableBody"></tbody>
+          </table>
+        </div>
 
-      <div id="emptyState" class="empty-state hidden">
-        <h3>No transactions found</h3>
-        <p>Add a new transaction or change your filters.</p>
-      </div>
-    </section>
-  </main>
+        <div id="mobileRecordList" class="mobile-record-list"></div>
+
+        <div id="emptyState" class="empty-state hidden">
+          <h3>No transactions found</h3>
+          <p>Try changing filters or add a new transaction.</p>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script src="script.js"></script>
 </body>
