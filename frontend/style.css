@@ -1,21 +1,25 @@
 :root {
-  --bg: #fff7fb;
+  --bg: #f7f8fb;
   --surface: #ffffff;
-  --surface-soft: #fff0f7;
-  --text: #261826;
-  --muted: #75657a;
-  --border: #efd7e6;
-  --primary: #e84d8a;
-  --primary-dark: #cf2f71;
-  --primary-soft: #ffe3ef;
-  --pink-soft: #fff0f7;
-  --purple-soft: #f3eaff;
-  --blue-soft: #eaf4ff;
+  --surface-soft: #f7f4f6;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+
+  --primary: #b4537a;
+  --primary-dark: #964563;
+  --primary-soft: #f6e8ee;
+
+  --pink-soft: #f8eef2;
+  --purple-soft: #eef0ff;
+  --blue-soft: #edf5ff;
+
   --green: #159a62;
-  --green-soft: #e5f8ee;
-  --red: #d94163;
-  --red-soft: #ffe8ef;
-  --shadow: 0 18px 40px rgba(160, 64, 117, 0.10);
+  --green-soft: #e8f7ef;
+  --red: #c94a63;
+  --red-soft: #faebef;
+
+  --shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
   --radius-xl: 28px;
   --radius-lg: 22px;
   --radius-md: 18px;
@@ -34,11 +38,10 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(180deg, #fff7fb 0%, #fffafd 100%);
+  background: linear-gradient(180deg, #f7f8fb 0%, #fbfbfd 100%);
   color: var(--text);
   overflow-x: clip;
 }
-
 button,
 input,
 select {
@@ -171,13 +174,13 @@ h3 {
 }
 
 .secondary-btn {
-  background: #f7edf3;
-  color: #5a4758;
+  background: #f3f4f6;
+  color: #4b5563;
   padding: 12px 16px;
 }
 
 .danger-btn {
-  background: #fff0f3;
+  background: #fff3f5;
   color: var(--red);
   padding: 12px 16px;
 }
@@ -199,7 +202,7 @@ h3 {
 }
 
 .account-card {
-  background: linear-gradient(180deg, #ffffff 0%, #fff6fb 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfafb 100%);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 18px;
@@ -250,7 +253,7 @@ h3 {
 }
 
 .hero-card {
-  background: linear-gradient(180deg, #ffffff 0%, #fff5fa 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #fcfafb 100%);
 }
 
 .details-layout {
