@@ -1,5 +1,5 @@
-const CACHE_NAME = 'transaction-dashboard-v1';
-const STATIC_ASSETS = [
+const CACHE_NAME = 'ledger-flow-v2';
+const ASSETS = [
   './',
   './index.html',
   './style.css',
@@ -11,18 +11,7 @@ const STATIC_ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      for (const asset of STATIC_ASSETS) {
-        try {
-          const response = await fetch(asset, { cache: 'no-store' });
-          if (response.ok) {
-            await cache.put(asset, response.clone());
-          }
-        } catch (error) {
-          console.error('Failed to cache:', asset, error);
-        }
-      }
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
@@ -41,14 +30,7 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      return (
-        cached ||
-        fetch(event.request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        })
-      );
+      return cached || fetch(event.request);
     })
   );
 });

@@ -1,15 +1,13 @@
 {
   "id": "/",
-  "name": "Transaction Dashboard",
-  "short_name": "Transaction",
+  "name": "Ledger Flow",
+  "short_name": "Ledger",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#5b5cf0",
   "orientation": "portrait",
-  "background_color": "#f3f6fb",
-  "theme_color": "#1664f5",
-  "description": "Manage multiple accounts, track debit and credit records, and export reports.",
-  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./icons/icon-192.jpg",

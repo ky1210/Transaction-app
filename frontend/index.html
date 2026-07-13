@@ -3,189 +3,189 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Transaction App</title>
+  <title>Ledger Flow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="./manifest.webmanifest" />
-  <meta name="theme-color" content="#1664f5" />
-  <link rel="apple-touch-icon" href="./icons/icon-192.jpg" />
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="./style.css" />
+  <meta name="theme-color" content="#4f46e5" />
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">Expense record keeper</p>
-        <h1>Transaction Dashboard</h1>
-        <p class="subtext">Manage multiple accounts, add records quickly, and export your data anytime.</p>
+  <div class="app">
+    <aside class="drawer-overlay" id="drawerOverlay"></aside>
+
+    <aside class="drawer" id="sideDrawer">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Filters</p>
+          <h3>Search records</h3>
+        </div>
+        <button class="icon-btn" id="closeDrawerBtn" type="button">✕</button>
       </div>
 
-      <div class="topbar-actions">
-        <button id="installBtn" class="secondary-btn hidden" type="button">Install App</button>
-        <button id="exportPdfBtn" class="secondary-btn" type="button">Download PDF</button>
-        <button id="exportBtn" class="primary-btn" type="button">Download XLSX</button>
+      <div class="drawer-content">
+        <div class="field">
+          <label for="drawerAccountFilter">Account</label>
+          <select id="drawerAccountFilter"></select>
+        </div>
+
+        <div class="field">
+          <label for="searchInput">Search description</label>
+          <input id="searchInput" type="text" placeholder="Search transaction..." />
+        </div>
+
+        <div class="field">
+          <label for="fromDate">From date</label>
+          <input id="fromDate" type="date" />
+        </div>
+
+        <div class="field">
+          <label for="toDate">To date</label>
+          <input id="toDate" type="date" />
+        </div>
+
+        <div class="chip-row">
+          <button class="chip active" data-filter-type="all" type="button">All</button>
+          <button class="chip" data-filter-type="credit" type="button">Credit</button>
+          <button class="chip" data-filter-type="debit" type="button">Debit</button>
+        </div>
+
+        <div class="drawer-actions">
+          <button class="secondary-btn" id="clearFiltersBtn" type="button">Clear filters</button>
+        </div>
       </div>
-    </header>
+    </aside>
 
-    <main class="dashboard-grid">
-      <section class="panel hero-panel">
-        <div class="hero-main">
-          <div class="account-picker-row">
-            <div class="field">
-              <label for="accountSelect">Selected account</label>
-              <select id="accountSelect"></select>
+    <section class="screen active" id="accountsScreen">
+      <header class="topbar">
+        <div class="brand-row">
+          <button class="icon-btn" id="openDrawerBtn" type="button">☰</button>
+          <div>
+            <p class="eyebrow">Simple ledger</p>
+            <h1>Choose an account</h1>
+            <p class="subtext">Start by selecting the account you want to work with.</p>
+          </div>
+        </div>
+
+        <button class="primary-btn" id="newAccountBtn" type="button">Add account</button>
+      </header>
+
+      <main class="accounts-layout">
+        <section class="accounts-grid" id="accountsGrid"></section>
+      </main>
+    </section>
+
+    <section class="screen" id="detailsScreen">
+      <header class="topbar compact">
+        <div class="brand-row">
+          <button class="icon-btn" id="backBtn" type="button">←</button>
+          <div>
+            <p class="eyebrow">Account view</p>
+            <h1 id="selectedAccountTitle">Account</h1>
+            <p class="subtext">Add transactions and review account summary.</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="icon-btn" id="detailsDrawerBtn" type="button">☰</button>
+        </div>
+      </header>
+
+      <main class="details-layout">
+        <section class="hero-card">
+          <div class="hero-top">
+            <div>
+              <p class="muted-label">Selected account</p>
+              <h2 id="selectedAccountName">Cash</h2>
+            </div>
+            <span class="status-pill" id="selectedAccountTxCount">0 records</span>
+          </div>
+
+          <button class="primary-btn wide-btn" id="toggleTransactionFormBtn" type="button">Add transaction</button>
+
+          <div class="summary-grid">
+            <article class="summary-card credit-card">
+              <span>Total credit</span>
+              <strong id="totalCredit">₹0.00</strong>
+            </article>
+            <article class="summary-card debit-card">
+              <span>Total debit</span>
+              <strong id="totalDebit">₹0.00</strong>
+            </article>
+            <article class="summary-card balance-card">
+              <span>Balance</span>
+              <strong id="netBalance">₹0.00</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel hidden" id="transactionComposer">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Entry</p>
+              <h3 id="composerTitle">Add transaction</h3>
+            </div>
+          </div>
+
+          <form id="transactionForm" class="transaction-form">
+            <input type="hidden" id="transactionId" />
+
+            <div class="type-toggle">
+              <button type="button" class="type-btn active" data-type="debit">Debit</button>
+              <button type="button" class="type-btn" data-type="credit">Credit</button>
             </div>
 
-            <div class="account-actions">
-              <button type="button" id="newAccountBtn" class="secondary-btn">Add Account</button>
-              <button type="button" id="renameAccountBtn" class="secondary-btn">Rename</button>
-              <button type="button" id="deleteAccountBtn" class="danger-btn">Delete</button>
-            </div>
-          </div>
-
-          <div id="accountsOverview" class="accounts-overview"></div>
-        </div>
-      </section>
-
-      <section class="panel summary-panel">
-        <div class="section-head">
-          <div>
-            <h2>Overview</h2>
-            <p>Quick totals for the selected account.</p>
-          </div>
-        </div>
-
-        <div class="summary-grid">
-          <article class="summary-card">
-            <span>Total credit</span>
-            <strong id="totalCredit">₹0.00</strong>
-          </article>
-
-          <article class="summary-card">
-            <span>Total debit</span>
-            <strong id="totalDebit">₹0.00</strong>
-          </article>
-
-          <article class="summary-card">
-            <span>Net balance</span>
-            <strong id="netBalance">₹0.00</strong>
-          </article>
-        </div>
-      </section>
-
-      <section class="panel form-panel">
-        <div class="section-head">
-          <div>
-            <h2>Add transaction</h2>
-            <p>Quick entry for debit or credit in the selected account.</p>
-          </div>
-        </div>
-
-        <form id="transactionForm" class="transaction-form">
-          <input type="hidden" id="transactionId" />
-
-          <div class="type-toggle">
-            <button type="button" class="type-btn active" data-type="debit">Debit</button>
-            <button type="button" class="type-btn" data-type="credit">Credit</button>
-          </div>
-
-          <div class="form-grid">
             <div class="field">
               <label for="date">Date</label>
-              <input type="date" id="date" required />
+              <input id="date" type="date" required />
+            </div>
+
+            <div class="field">
+              <label for="description">Description</label>
+              <input id="description" type="text" placeholder="Eg. Diesel, rent, client payment..." required />
             </div>
 
             <div class="field">
               <label for="amount">Amount</label>
-              <input type="number" id="amount" min="0" step="0.01" placeholder="0.00" required />
+              <input id="amount" type="number" min="0" step="0.01" placeholder="0.00" required />
             </div>
 
-            <div class="field full-span">
-              <label for="description">Description</label>
-              <input type="text" id="description" placeholder="Milk, recharge, client payment, rent..." required />
+            <div class="form-actions">
+              <button class="primary-btn" id="saveBtn" type="submit">Save transaction</button>
+              <button class="secondary-btn" id="resetBtn" type="button">Cancel</button>
+            </div>
+          </form>
+
+          <p id="message" class="message" aria-live="polite"></p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">History</p>
+              <h3>Recent transactions</h3>
+            </div>
+
+            <div class="inline-actions">
+              <button class="secondary-btn" id="exportPdfBtn" type="button">PDF</button>
+              <button class="primary-btn" id="exportBtn" type="button">XLSX</button>
             </div>
           </div>
 
-          <div class="form-actions">
-            <button type="submit" id="saveBtn" class="primary-btn">Save transaction</button>
-            <button type="button" id="resetBtn" class="secondary-btn">Clear</button>
-          </div>
-        </form>
-
-        <p id="message" class="message" aria-live="polite"></p>
-      </section>
-
-      <section class="panel records-panel">
-        <div class="section-head records-head">
-          <div>
-            <h2>Records</h2>
-            <p>Search, filter, and review transactions clearly.</p>
+          <div id="emptyState" class="empty-state hidden">
+            <h3>No transactions yet</h3>
+            <p>Add your first transaction to see records here.</p>
           </div>
 
-          <div class="chip-row">
-            <button type="button" class="chip active" data-filter-type="all">All</button>
-            <button type="button" class="chip" data-filter-type="credit">Credit</button>
-            <button type="button" class="chip" data-filter-type="debit">Debit</button>
-          </div>
-        </div>
-
-        <div class="filters-grid">
-          <div class="field">
-            <label for="searchInput">Search</label>
-            <input type="text" id="searchInput" placeholder="Search description..." />
-          </div>
-
-          <div class="field">
-            <label for="fromDate">From</label>
-            <input type="date" id="fromDate" />
-          </div>
-
-          <div class="field">
-            <label for="toDate">To</label>
-            <input type="date" id="toDate" />
-          </div>
-
-          <div class="field">
-            <label for="recordAccountFilter">Account</label>
-            <select id="recordAccountFilter"></select>
-          </div>
-        </div>
-
-        <div class="records-actions">
-          <button type="button" id="clearFiltersBtn" class="secondary-btn">Clear Filters</button>
-          <button type="button" id="clearAllBtn" class="danger-btn">Clear Selected Records</button>
-        </div>
-
-        <div class="desktop-table-wrap">
-          <table class="records-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Account</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Balance Impact</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="transactionTableBody"></tbody>
-          </table>
-        </div>
-
-        <div id="mobileRecordList" class="mobile-record-list"></div>
-
-        <div id="emptyState" class="empty-state hidden">
-          <h3>No transactions found</h3>
-          <p>Try changing filters or add a new transaction.</p>
-        </div>
-      </section>
-    </main>
+          <div class="transaction-list" id="mobileRecordList"></div>
+        </section>
+      </main>
+    </section>
   </div>
 
-  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
