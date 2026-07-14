@@ -529,3 +529,33 @@ setScreen('accounts');
 refreshData().catch((error) => {
   console.error(error);
 });
+let deferredInstallPrompt = null;
+
+const installPanel = document.getElementById('installPanel');
+const installAppBtn = document.getElementById('installAppBtn');
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  if (installPanel) installPanel.hidden = false;
+});
+
+if (installAppBtn) {
+  installAppBtn.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+
+    if (choice.outcome === 'accepted' && installPanel) {
+      installPanel.hidden = true;
+    }
+
+    deferredInstallPrompt = null;
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  if (installPanel) installPanel.hidden = true;
+});
