@@ -531,3 +531,18 @@ h3 {
     width: 100%;
   }
 }
+.install-panel {
+  background: #f6e8ee;
+  border: 1px solid #ead2dc;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.install-panel p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 14px;
+}
